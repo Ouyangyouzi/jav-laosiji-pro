@@ -30,12 +30,15 @@ jobs:
           version=$(grep -oP '@version\s+\K\S+' jav-laosiji-pro.user.js | head -1 || true)
           echo "仓库内版本: ${version:-未知}"
 
-          payload=$(printf '{"ref":"refs/heads/main","after":"%s","repository":{"full_name":"Ouyangyouzi/jav-laosiji-pro","html_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro","clone_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro.git"},"head_commit":{"id":"%s"}}' "$GITHUB_SHA" "$GITHUB_SHA")
+          delivery=$(cat /proc/sys/kernel/random/uuid)
+          payload=$(printf '{"ref":"refs/heads/main","after":"%s","repository":{"id":1,"name":"jav-laosiji-pro","full_name":"Ouyangyouzi/jav-laosiji-pro","html_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro","clone_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro.git"},"pusher":{"name":"Ouyangyouzi"},"sender":{"login":"Ouyangyouzi"},"head_commit":{"id":"%s"}}' "$GITHUB_SHA" "$GITHUB_SHA")
 
           code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' -X POST \
+            -A "GitHub-Hookshot/6f2a1c3" \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: push" \
-            --max-time 60 --retry 3 --retry-delay 5 \
+            -H "X-GitHub-Delivery: $delivery" \
+            --max-time 60 --retry 2 --retry-delay 5 \
             -d "$payload" "$GF_WEBHOOK" || echo "000")
 
           body=$(head -c 300 /tmp/resp.txt 2>/dev/null || true)
