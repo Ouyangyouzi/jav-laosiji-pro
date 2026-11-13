@@ -77,7 +77,6 @@
 jav-laosiji-pro.user.js   脚本本体（安装这个）
 docs/功能说明.md           12 个模块的完整说明
 docs/上游3.0.3合并说明.md   与上游 3.0.3 的差异、24 处冲突处置、可移植项清单
-.github/workflows/        推送后自动通知 Greasyfork 同步
 CHANGELOG.md              版本记录
 LICENSE                   MIT（含上游致谢）
 ```
@@ -86,11 +85,20 @@ LICENSE                   MIT（含上游致谢）
 
 发版只改仓库里的 `jav-laosiji-pro.user.js`，Greasyfork 那边不用手动上传：
 
-1. 改脚本并把 `@version` 与脚本内常量 `li` 同步递增（四段式，如 `3.0.3.5`）。
+1. 改脚本，把 `@version` 与脚本内常量 `li` 同步递增（四段式，如 `3.0.3.5`）。
 2. `git commit && git push` 到 `main`。
-3. GitHub 上的 `Sync to Greasyfork` 工作流会立刻请求 Greasyfork 去 `raw.githubusercontent.com/.../main/jav-laosiji-pro.user.js` 拉新版本；即使这一步失败也没关系，Greasyfork 的「自动」同步本身会定期检查该地址。
+3. Greasyfork 会去 `raw.githubusercontent.com` 的对应地址拉新版本 —— 这一步已在 Greasyfork 的「管理 → 源代码同步」里配好（地址为 raw 链接、方式为「自动」），不推送则不会更新。
 
-Greasyfork 侧的一次性配置（在脚本「管理 → 源代码同步」里）：同步地址填上面的 raw 链接，方式选「自动」。
+想做到「推送后立刻同步」而不是等 Greasyfork 的定期检查，可以在仓库里加一条 GitHub 原生 Webhook（一次性设置，需要在 GitHub 做一次邮箱/短信验证）：
+
+| 项 | 值 |
+| --- | --- |
+| Payload URL | 见 Greasyfork「管理 → 设置 Webhook」页给出的地址（形如 `https://api.greasyfork.org/zh-CN/users/<你的ID>/webhook`） |
+| Content type | `application/json` |
+| Secret | 留空 |
+| 触发事件 | Just the push event |
+
+> 注：用脚本自行向该 Webhook 发一个伪造的 push 请求是**行不通**的（会被拒 403），Greasyfork 只接受 GitHub 的真实投递。
 
 ## 致谢
 
