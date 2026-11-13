@@ -2,9 +2,9 @@
 
 把「找片 → 下磁力 → 推 115 → 自动归档 → 播放 / 追新」这条链路，压进一个油猴脚本、几个按钮里。不用来回复制番号，不用在 115 里一层层翻文件夹，也不用为了看一部片开五个标签页。
 
-`v3.0.3.7` · 基于 [ZiPenOk](https://github.com/ZiPenOk/scripts) 的《JAV老司机-新》魔改 · Tampermonkey / Violentmonkey
+`v3.0.3.8` · 基于 [ZiPenOk](https://github.com/ZiPenOk/scripts) 的《JAV老司机-新》魔改 · Tampermonkey / Violentmonkey
 
-[![version](https://img.shields.io/badge/version-3.0.3.7-blue.svg)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-3.0.3.8-blue.svg)](CHANGELOG.md)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![install](https://img.shields.io/badge/install-userscript-brightgreen.svg)](#安装)
 
@@ -41,8 +41,8 @@
 
 ### 与原版的关系
 
-- 代码基线：上游 `3.0.0.2`，魔改在本地逐版累积；本版（`3.0.3.7`）即该基线的完整魔改形态。
-- 版本号四段式 `3.0.3.7` = 对标的上游版本 `3.0.3` + 本地修订序号 `7`。**第 4 段只表示发布顺序，不代表功能已与上游逐项对齐。**
+- 代码基线：上游 `3.0.0.2`，魔改在本地逐版累积；本版（`3.0.3.8`）即该基线的完整魔改形态。
+- 版本号四段式 `3.0.3.8` = 对标的上游版本 `3.0.3` + 本地修订序号 `8`。**第 4 段只表示发布顺序，不代表功能已与上游逐项对齐。**
 - **尚未并入**：上游 `3.0.3` 的两处改动 —— ① 6 项移动端样式（设置面板导航横滑 / 详情页按钮组换行 / 资源中心头部 / 工具栏 / 演员卡片与分页紧凑化 / 115 剧照栅格）与悬浮齿轮淡出；② 115 信息卡片缓存清理后的计数归一（原来无论清了多少都显示「已清理 1 项」）。两者已在开发分支完成验证，将在下一版合入。
 - **已知差异**：上游 3.0.3 新增的「FC2 官方来源」模块（用于 115 信息卡片的封面 / 信息 / 剧照）尚未移植，FC2 作品的信息卡仍走第三方来源。上游那份是整份重压缩的产物，内部标识符全部换名，文本级合并会直接产生 `Identifier has already been declared`，需要按模块重写。合并过程与冲突明细见 [`docs/上游3.0.3合并说明.md`](docs/上游3.0.3合并说明.md)。
 
@@ -85,7 +85,7 @@ LICENSE                   MIT（含上游致谢）
 
 发版只改仓库里的 `jav-laosiji-pro.user.js`，Greasyfork 那边不用手动上传：
 
-1. 改脚本，把 `@version` 与脚本内常量 `li` 同步递增（四段式，如 `3.0.3.7`）。
+1. 改脚本，把 `@version` 与脚本内常量 `li` 同步递增（四段式，如 `3.0.3.8`）。
 2. `git commit && git push` 到 `main`。
 3. Greasyfork 会去 `raw.githubusercontent.com` 的对应地址拉新版本 —— 这一步已在 Greasyfork 的「管理 → 源代码同步」里配好（地址为 raw 链接、方式为「自动」），不推送则不会更新。
 
