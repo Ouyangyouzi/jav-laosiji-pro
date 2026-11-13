@@ -3,12 +3,17 @@ name: Sync to Greasyfork
 # 推送脚本到 main 后，通知 Greasyfork 去 raw 地址拉取新版本。
 # 配合「管理 → 源代码同步 → 自动」使用：Greasyfork 平时会定期检查，
 # 这个 Action 让它在推送后立刻同步，不用等轮询。
+#
+# Greasyfork 侧的一次性配置：
+#   同步地址 = https://raw.githubusercontent.com/Ouyangyouzi/jav-laosiji-pro/main/jav-laosiji-pro.user.js
+#   同步方式 = 自动
 
 on:
   push:
     branches: [main]
     paths:
       - "jav-laosiji-pro.user.js"
+      - ".github/workflows/sync-greasyfork.yml"
   workflow_dispatch:
 
 jobs:
@@ -16,22 +21,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Trigger Greasyfork sync
         env:
           GF_WEBHOOK: https://api.greasyfork.org/zh-CN/users/1424712-%E6%AC%A7%E9%98%B3%E5%AE%87%E5%AE%87/webhook
         run: |
           set -euo pipefail
-          VERSION=$(grep -oP '@version\s+\K\S+' jav-laosiji-pro.user.js || true)
-          echo "推送版本: ${VERSION:-未知}"
-          payload=$(printf '{"ref":"refs/heads/main","repository":{"full_name":"Ouyangyouzi/jav-laosiji-pro","html_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro","clone_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro.git"},"head_commit":{"id":"%s"}}' "${GITHUB_SHA}")
+          version=$(grep -oP '@version\s+\K\S+' jav-laosiji-pro.user.js | head -1 || true)
+          echo "仓库内版本: ${version:-未知}"
+
+          payload=$(printf '{"ref":"refs/heads/main","after":"%s","repository":{"full_name":"Ouyangyouzi/jav-laosiji-pro","html_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro","clone_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro.git"},"head_commit":{"id":"%s"}}' "$GITHUB_SHA" "$GITHUB_SHA")
+
           code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' -X POST \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: push" \
-            --max-time 60 --retry 2 --retry-delay 5 \
-            -d "$payload" "$GF_WEBHOOK")
-          echo "HTTP $code"
-          head -c 500 /tmp/resp.txt || true
-          case "$code" in
-            2*) echo "已通知 Greasyfork 同步" ;;
-            *) echo "通知失败，Greasyfork 仍会在下次定期检查时同步" >&2 ;;
-          esac
+            --max-time 60 --retry 3 --retry-delay 5 \
+            -d "$payload" "$GF_WEBHOOK" || echo "000")
+
+          body=$(head -c 300 /tmp/resp.txt 2>/dev/null || true)
+          echo "Greasyfork 返回: HTTP $code"
+          echo "响应: $body"
+          echo "::notice title=Greasyfork HTTP $code::${body:-无响应体}"
+
+          if [ "$code" = "000" ] || [ "${code:0:1}" != "2" ]; then
+            echo "::error title=Greasyfork 同步通知失败::HTTP $code。不影响使用：Greasyfork 的定期检查仍会同步。"
+            exit 1
+          fi
