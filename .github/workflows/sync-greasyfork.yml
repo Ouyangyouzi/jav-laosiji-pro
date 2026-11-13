@@ -1,0 +1,37 @@
+name: Sync to Greasyfork
+
+# 推送脚本到 main 后，通知 Greasyfork 去 raw 地址拉取新版本。
+# 配合「管理 → 源代码同步 → 自动」使用：Greasyfork 平时会定期检查，
+# 这个 Action 让它在推送后立刻同步，不用等轮询。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "jav-laosiji-pro.user.js"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger Greasyfork sync
+        env:
+          GF_WEBHOOK: https://api.greasyfork.org/zh-CN/users/1424712-%E6%AC%A7%E9%98%B3%E5%AE%87%E5%AE%87/webhook
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP '@version\s+\K\S+' jav-laosiji-pro.user.js || true)
+          echo "推送版本: ${VERSION:-未知}"
+          payload=$(printf '{"ref":"refs/heads/main","repository":{"full_name":"Ouyangyouzi/jav-laosiji-pro","html_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro","clone_url":"https://github.com/Ouyangyouzi/jav-laosiji-pro.git"},"head_commit":{"id":"%s"}}' "${GITHUB_SHA}")
+          code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: push" \
+            --max-time 60 --retry 2 --retry-delay 5 \
+            -d "$payload" "$GF_WEBHOOK")
+          echo "HTTP $code"
+          head -c 500 /tmp/resp.txt || true
+          case "$code" in
+            2*) echo "已通知 Greasyfork 同步" ;;
+            *) echo "通知失败，Greasyfork 仍会在下次定期检查时同步" >&2 ;;
+          esac
