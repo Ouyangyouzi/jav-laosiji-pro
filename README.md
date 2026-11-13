@@ -89,14 +89,18 @@ LICENSE                   MIT（含上游致谢）
 2. `git commit && git push` 到 `main`。
 3. Greasyfork 会去 `raw.githubusercontent.com` 的对应地址拉新版本 —— 这一步已在 Greasyfork 的「管理 → 源代码同步」里配好（地址为 raw 链接、方式为「自动」），不推送则不会更新。
 
-想做到「推送后立刻同步」而不是等 Greasyfork 的定期检查，可以在仓库里加一条 GitHub 原生 Webhook（一次性设置，需要在 GitHub 做一次邮箱/短信验证）：
+「推送后立刻同步」已通过 GitHub 原生 Webhook 打通（仓库 Settings → Webhooks，Hook ID `711261829`）：
 
 | 项 | 值 |
 | --- | --- |
-| Payload URL | 见 Greasyfork「管理 → 设置 Webhook」页给出的地址（形如 `https://api.greasyfork.org/zh-CN/users/<你的ID>/webhook`） |
+| Payload URL | Greasyfork「管理 → 设置 Webhook」页给出的地址（`https://api.greasyfork.org/zh-CN/users/<你的ID>/webhook`） |
 | Content type | `application/json` |
 | Secret | 留空 |
+| SSL 验证 | 启用 |
 | 触发事件 | Just the push event |
+| Active | 勾选 |
+
+注意：创建 Webhook 时 GitHub 会发一次 `ping`，该事件 Greasyfork 不支持（返回 403），属正常现象；只有真实 `push` 且改动了 `jav-laosiji-pro.user.js` 才会触发同步。
 
 > 注：用脚本自行向该 Webhook 发一个伪造的 push 请求是**行不通**的（会被拒 403），Greasyfork 只接受 GitHub 的真实投递。
 
