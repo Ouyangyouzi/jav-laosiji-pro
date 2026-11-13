@@ -95,12 +95,14 @@ LICENSE                   MIT（含上游致谢）
 | --- | --- |
 | Payload URL | Greasyfork「管理 → 设置 Webhook」页给出的地址（`https://api.greasyfork.org/zh-CN/users/<你的ID>/webhook`） |
 | Content type | `application/json` |
-| Secret | 留空 |
+| Secret | **必填**，见下方说明 |
 | SSL 验证 | 启用 |
 | 触发事件 | Just the push event |
 | Active | 勾选 |
 
-注意：创建 Webhook 时 GitHub 会发一次 `ping`，该事件 Greasyfork 不支持（返回 403），属正常现象；只有真实 `push` 且改动了 `jav-laosiji-pro.user.js` 才会触发同步。
+**Secret 必须填，不能留空。** Greasyfork 的校验逻辑是「没有 secret 或签名不匹配一律 403」（`app/controllers/concerns/webhooks.rb`），而它页面上那句「Secret 留空」是照搬 GitHub 文档的通用说明，照做只会全部投递失败。
+
+正确做法：在 Greasyfork 的「设置 Webhook」页，GitHub 那一段有个 **Generate** 按钮，点一下生成 Secret，把生成的字符串复制到 GitHub 的 Secret 字段里保存。此后 GitHub 会用它对 payload 做 HMAC-SHA1 签名，Greasyfork 验签通过才处理。
 
 > 注：用脚本自行向该 Webhook 发一个伪造的 push 请求是**行不通**的（会被拒 403），Greasyfork 只接受 GitHub 的真实投递。
 
